@@ -1,12 +1,17 @@
-const path = require("path");
-const HtmlWebPackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const path = require('path');
+const HtmlWebPackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-  target: "web",
+  target: 'web',
+  devtool: 'source-map',
+  devServer: {
+    port: 9000,
+  },
   output: {
-    path: path.resolve(__dirname, "dist"),
-    publicPath: "",
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '',
   },
   module: {
     rules: [
@@ -14,35 +19,37 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader",
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+          },
         },
       },
       {
         test: /\.html$/,
         use: [
           {
-            loader: "html-loader",
+            loader: 'html-loader',
           },
         ],
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: "asset/resource",
+        use: [
+          MiniCssExtractPlugin.loader, 'css-loader',
+        ],
       },
     ],
   },
   plugins: [
     new HtmlWebPackPlugin({
-      template: "./src/index.html",
-      filename: "./index.html",
+      template: './src/index.html',
+      filename: './index.html',
     }),
     new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css",
+      filename: '[name].css',
+      chunkFilename: '[id].css',
     }),
+    new CleanWebpackPlugin(),
   ],
 };
