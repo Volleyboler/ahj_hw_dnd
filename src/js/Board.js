@@ -288,17 +288,17 @@ export default class Board {
     if (!closestColumn) return;
 
     // Получаем все задачи в колонке
-    const allTasks = Array.from(closestColumn.children).filter(child => child.classList.contains('task'));
+    const allTasks = Array.from(closestColumn.children).filter((child) => child.classList.contains('task'));
 
     // Рассчитываем позиции всех задач
     const positions = [0]; // Начальная позиция перед первой задачей
-    allTasks.forEach(task => {
+      allTasks.forEach((task) => {
       const rect = task.getBoundingClientRect();
       positions.push(rect.top + rect.height / 2); // Середина каждой задачи
     });
 
     // Находим индекс, куда нужно вставить новое место
-    const index = positions.findIndex(pos => pos > e.clientY);
+    const index = positions.findIndex((pos) => pos > e.clientY);
 
     // Если элемента .task-list__new-place еще нет, создаем его
     if (!this.newPlace) {
