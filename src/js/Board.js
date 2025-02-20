@@ -292,7 +292,7 @@ export default class Board {
 
     // Рассчитываем позиции всех задач
     const positions = [0]; // Начальная позиция перед первой задачей
-      allTasks.forEach((task) => {
+    allTasks.forEach((task) => {
       const rect = task.getBoundingClientRect();
       positions.push(rect.top + rect.height / 2); // Середина каждой задачи
     });
