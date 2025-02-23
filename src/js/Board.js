@@ -211,36 +211,28 @@ export default class Board {
       this.draggedEl = e.target;
       this.ghostEl = e.target.cloneNode(true);
 
-      // Удаляем кнопку удаления ("X") из призрака
       if (this.ghostEl.querySelector('.close')) {
         this.ghostEl.removeChild(this.ghostEl.querySelector('.close'));
       }
 
-      // Добавляем классы для стилей
       this.ghostEl.classList.add('dragged');
       this.ghostEl.classList.add('ghost');
 
-      // Устанавливаем размеры призрака
       this.ghostEl.style.width = `${this.draggedEl.offsetWidth}px`;
       this.ghostEl.style.height = `${this.draggedEl.offsetHeight}px`;
 
-      // Вычисляем смещение относительно точки нажатия
       const rect = this.draggedEl.getBoundingClientRect();
-      this.offsetX = e.clientX - rect.left; // Смещение по горизонтали
-      this.offsetY = e.clientY - rect.top; // Смещение по вертикали
+      this.offsetX = e.clientX - rect.left;
+      this.offsetY = e.clientY - rect.top;
 
-      // Добавляем призрак в DOM
       document.body.appendChild(this.ghostEl);
       this.ghostEl.style.position = 'absolute';
 
-      // Устанавливаем начальную позицию призрака
       this.ghostEl.style.top = `${e.clientY - this.offsetY}px`;
       this.ghostEl.style.left = `${e.clientX - this.offsetX}px`;
 
-      // Скрываем оригинальную карточку
       this.draggedEl.style.display = 'none';
 
-      // Создаем placeholder для вставки
       if (!this.newPlace) {
         this.newPlace = document.createElement('div');
         this.newPlace.classList.add('task-list__new-place');
@@ -248,10 +240,8 @@ export default class Board {
         this.newPlace.style.height = `${this.ghostEl.offsetHeight}px`;
       }
 
-      // Показываем возможное место для вставки сразу
       this.showPossiblePlace(e);
 
-      // Начинаем отслеживать движение мыши
       document.addEventListener('mousemove', this.dragMove);
       document.addEventListener('mouseup', this.mouseUp);
     }
@@ -261,11 +251,9 @@ export default class Board {
     e.preventDefault();
     if (!this.draggedEl) return;
 
-    // Обновляем позицию призрака с учетом смещений
     this.ghostEl.style.top = `${e.clientY - this.offsetY}px`;
     this.ghostEl.style.left = `${e.clientX - this.offsetX}px`;
 
-    // Обновляем место для вставки
     this.showPossiblePlace(e);
   }
 
@@ -273,26 +261,21 @@ export default class Board {
   mouseUp(e) {
     if (!this.draggedEl) return;
 
-    // Если есть placeholder, вставляем карточку
     if (this.newPlace) {
       this.newPlace.replaceWith(this.draggedEl);
-      this.newPlace.remove(); // Удаляем placeholder
+      this.newPlace.remove();
       this.newPlace = null;
     }
 
-    // Восстанавливаем видимость оригинальной карточки
     this.draggedEl.style.display = 'flex';
 
-    // Удаляем призрак
     if (this.ghostEl) {
       document.body.removeChild(this.ghostEl);
       this.ghostEl = null;
     }
 
-    // Очищаем ссылку на draggedEl
     this.draggedEl = null;
 
-    // Убираем слушатели событий
     document.removeEventListener('mousemove', this.dragMove);
     document.removeEventListener('mouseup', this.mouseUp);
   }
@@ -301,23 +284,19 @@ export default class Board {
     const closestColumn = e.target.closest('.tasks-list');
     if (!closestColumn || !this.draggedEl) return;
 
-    // Получаем все задачи в столбце
     const allTasks = Array.from(closestColumn.querySelectorAll('.task'));
 
-    // Собираем позиции всех задач
     const columnRect = closestColumn.getBoundingClientRect();
-    const allPos = [columnRect.top + window.scrollY]; // Начальная позиция столбца
+    const allPos = [columnRect.top + window.scrollY];
 
     allTasks.forEach((task) => {
       const taskRect = task.getBoundingClientRect();
-      allPos.push(taskRect.top + task.offsetHeight / 2 + window.scrollY); // Центр задачи
+      allPos.push(taskRect.top + task.offsetHeight / 2 + window.scrollY);
     });
 
-    // Находим индекс, куда нужно вставить карточку
     const mouseY = e.clientY + window.scrollY;
     const insertIndex = allPos.findIndex((pos) => pos > mouseY);
 
-    // Вставляем placeholder в нужную позицию
     if (insertIndex !== -1) {
       closestColumn.insertBefore(this.newPlace, allTasks[insertIndex - 1] || null);
     } else {
