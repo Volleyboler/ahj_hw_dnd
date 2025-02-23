@@ -180,6 +180,7 @@ export default class Board {
     [...taskList].forEach((el) => el.addEventListener('mousedown', this.mouseDown));
   }
 
+  // eslint-disable-next-line class-methods-use-this
   removeTask(e) {
     const task = e.target.closest('.task');
     const parent = e.target.closest('.tasks-list');
@@ -200,6 +201,7 @@ export default class Board {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   onTaskLeave(e) {
     e.target.removeChild(e.target.querySelector('.close'));
   }
@@ -267,6 +269,7 @@ export default class Board {
     this.showPossiblePlace(e);
   }
 
+  // eslint-disable-next-line no-unused-vars
   mouseUp(e) {
     if (!this.draggedEl) return;
 
