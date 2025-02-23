@@ -9,6 +9,12 @@ export default class Board {
     this.tasksInProgress = [];
     this.tasksDone = [];
     this.tasks = [this.tasksTodo, this.tasksInProgress, this.tasksDone];
+    this.draggedEl = null;
+    this.ghostEl = null;
+    this.newPlace = null;
+    this.offsetX = 0;
+    this.offsetY = 0;
+
     this.addInput = this.addInput.bind(this);
     this.closeForm = this.closeForm.bind(this);
     this.addNewTask = this.addNewTask.bind(this);
@@ -65,21 +71,23 @@ export default class Board {
   drawBoard() {
     this.board = document.createElement('section');
     this.board.classList.add('board');
-    this.board.innerHTML = `<div class="column">
-        <h2 class="column__header">todo</h2>
-        <ul class="tasks-list todo"></ul>
+    this.board.innerHTML = `
+      <div class="column todo">
+        <div class="column__header">To Do</div>
+        <ul class="tasks-list"></ul>
         <div class="column__add">+ Add another card</div>
       </div>
-      <div class="column">
-        <h2 class="column__header">in progress</h2>
-        <ul class="tasks-list in-progress" id="trew"></ul> 
+      <div class="column in-progress">
+        <div class="column__header">In Progress</div>
+        <ul class="tasks-list"></ul>
         <div class="column__add">+ Add another card</div>
       </div>
-      <div class="column">
-        <h2 class="column__header">done</h2>
-        <ul class="tasks-list done"></ul>
+      <div class="column done">
+        <div class="column__header">Done</div>
+        <ul class="tasks-list"></ul>
         <div class="column__add">+ Add another card</div>
-      </div>`;
+      </div>
+    `;
 
     document.querySelector('body').appendChild(this.board);
   }
@@ -91,7 +99,7 @@ export default class Board {
       const parent = this.board.querySelector(parents[i]);
 
       this.tasks[i].forEach((item) => {
-        new Card(parent, item).addTask();
+        new Card(parent.querySelector('.tasks-list'), item).addTask();
 
         if (i === 0) {
           this.tasksTodo.push(item);
@@ -112,12 +120,12 @@ export default class Board {
     const newCardForm = document.createElement('form');
     newCardForm.classList.add('column__add-form');
     newCardForm.innerHTML = `
-          <textarea class="add-form__textarea" type ="text" placeholder="Enter a title for this card"></textarea>
-          <div class="add-form__form-control">
-            <button class="add-form__submit-button add-form__button">Add Card</button>
-            <button class="add-form__close-button add-form__button">Close</button>
-          </div>
-       `;
+      <textarea class="add-form__textarea" placeholder="Enter a title for this card..."></textarea>
+      <div class="add-form__form-control">
+        <button class="add-form__submit-button">Add Card</button>
+        <button class="add-form__close-button">Close</button>
+      </div>
+    `;
     const closestColumn = e.target.closest('.column');
 
     e.target.replaceWith(newCardForm);
@@ -174,7 +182,6 @@ export default class Board {
     [...taskList].forEach((el) => el.addEventListener('mousedown', this.mouseDown));
   }
 
-  // eslint-disable-next-line class-methods-use-this
   removeTask(e) {
     const task = e.target.closest('.task');
     const parent = e.target.closest('.tasks-list');
@@ -185,7 +192,7 @@ export default class Board {
   onTaskEnter(e) {
     if (
       e.target.classList.contains('task')
-          && !e.target.querySelector('.close')
+      && !e.target.querySelector('.close')
     ) {
       const closeEl = document.createElement('div');
       closeEl.classList.add('tasks-list__close');
@@ -200,7 +207,6 @@ export default class Board {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onTaskLeave(e) {
     e.target.removeChild(e.target.querySelector('.close'));
   }
@@ -208,34 +214,49 @@ export default class Board {
   mouseDown(e) {
     if (e.target.classList.contains('task')) {
       this.draggedEl = e.target;
-
-      // Создаем "призрак" сразу при нажатии
       this.ghostEl = e.target.cloneNode(true);
+
+      // Удаляем кнопку удаления ("X") из призрака
       if (this.ghostEl.querySelector('.close')) {
         this.ghostEl.removeChild(this.ghostEl.querySelector('.close'));
       }
-      // this.ghostEl.removeChild(this.ghostEl.querySelector('.close'));
+
+      // Добавляем классы для стилей
       this.ghostEl.classList.add('dragged');
       this.ghostEl.classList.add('ghost');
+
+      // Устанавливаем размеры призрака
       this.ghostEl.style.width = `${this.draggedEl.offsetWidth}px`;
       this.ghostEl.style.height = `${this.draggedEl.offsetHeight}px`;
 
       // Вычисляем смещение относительно точки нажатия
-      const rect = e.target.getBoundingClientRect();
-      this.offsetX = e.clientX - rect.left; // Смещение по оси X
-      this.offsetY = e.clientY - rect.top; // Смещение по оси Y
+      const rect = this.draggedEl.getBoundingClientRect();
+      this.offsetX = e.clientX - rect.left; // Смещение по горизонтали
+      this.offsetY = e.clientY - rect.top; // Смещение по вертикали
 
+      // Добавляем призрак в DOM
       document.body.appendChild(this.ghostEl);
-
-      // Устанавливаем начальную позицию "призрака"
       this.ghostEl.style.position = 'absolute';
+
+      // Устанавливаем начальную позицию призрака
       this.ghostEl.style.top = `${e.clientY - this.offsetY}px`;
       this.ghostEl.style.left = `${e.clientX - this.offsetX}px`;
 
+      // Скрываем оригинальную карточку
       this.draggedEl.style.display = 'none';
 
-      // Добавляем обработчик перемещения на document
-      // this.board.addEventListener('mousemove', this.dragMove);
+      // Создаем placeholder для вставки
+      if (!this.newPlace) {
+        this.newPlace = document.createElement('div');
+        this.newPlace.classList.add('task-list__new-place');
+        this.newPlace.style.width = `${this.ghostEl.offsetWidth}px`;
+        this.newPlace.style.height = `${this.ghostEl.offsetHeight}px`;
+      }
+
+      // Показываем возможное место для вставки сразу
+      this.showPossiblePlace(e);
+
+      // Начинаем отслеживать движение мыши
       document.addEventListener('mousemove', this.dragMove);
       document.addEventListener('mouseup', this.mouseUp);
     }
@@ -243,78 +264,68 @@ export default class Board {
 
   dragMove(e) {
     e.preventDefault();
-    if (!this.draggedEl || !this.ghostEl) return;
+    if (!this.draggedEl) return;
 
-    // Пересчитываем положение "призрака"
+    // Обновляем позицию призрака с учетом смещений
     this.ghostEl.style.top = `${e.clientY - this.offsetY}px`;
     this.ghostEl.style.left = `${e.clientX - this.offsetX}px`;
 
-    // Показываем возможное место для сброса
+    // Обновляем место для вставки
     this.showPossiblePlace(e);
   }
 
   mouseUp(e) {
-    e.preventDefault();
-    if (!this.draggedEl || !this.ghostEl) return;
+    if (!this.draggedEl) return;
 
-    // Если есть место для сброса, перемещаем карточку туда
-    if (this.newPlace && this.newPlace.parentNode) {
+    // Если есть placeholder, вставляем карточку
+    if (this.newPlace) {
       this.newPlace.replaceWith(this.draggedEl);
-    } else {
-      // Если место для сброса не найдено, возвращаем карточку на прежнее место
-      this.draggedEl.style.display = 'flex';
+      this.newPlace.remove(); // Удаляем placeholder
+      this.newPlace = null;
     }
 
-    // Удаляем "призрак" и место для сброса
-    document.body.removeChild(this.ghostEl);
-    if (this.newPlace && this.newPlace.parentNode) {
-      this.newPlace.remove();
+    // Восстанавливаем видимость оригинальной карточки
+    this.draggedEl.style.display = 'flex';
+
+    // Удаляем призрак
+    if (this.ghostEl) {
+      document.body.removeChild(this.ghostEl);
+      this.ghostEl = null;
     }
 
-    this.ghostEl = null;
+    // Очищаем ссылку на draggedEl
     this.draggedEl = null;
-    this.newPlace = null;
 
-    // Удаляем обработчики событий
+    // Убираем слушатели событий
     document.removeEventListener('mousemove', this.dragMove);
     document.removeEventListener('mouseup', this.mouseUp);
   }
 
   showPossiblePlace(e) {
-    e.preventDefault();
-    if (!this.draggedEl || !this.ghostEl) return;
-
     const closestColumn = e.target.closest('.tasks-list');
-    if (!closestColumn) return;
+    if (!closestColumn || !this.draggedEl) return;
 
-    // Получаем все задачи в колонке
-    const allTasks = Array.from(closestColumn.children).filter((child) => child.classList.contains('task'));
+    // Получаем все задачи в столбце
+    const allTasks = Array.from(closestColumn.querySelectorAll('.task'));
 
-    // Рассчитываем позиции всех задач
-    const positions = [0]; // Начальная позиция перед первой задачей
+    // Собираем позиции всех задач
+    const columnRect = closestColumn.getBoundingClientRect();
+    const allPos = [columnRect.top + window.scrollY]; // Начальная позиция столбца
+
     allTasks.forEach((task) => {
-      const rect = task.getBoundingClientRect();
-      positions.push(rect.top + rect.height / 2); // Середина каждой задачи
+      const taskRect = task.getBoundingClientRect();
+      allPos.push(taskRect.top + task.offsetHeight / 2 + window.scrollY); // Центр задачи
     });
 
-    // Находим индекс, куда нужно вставить новое место
-    const index = positions.findIndex((pos) => pos > e.clientY);
+    // Находим индекс, куда нужно вставить карточку
+    const mouseY = e.clientY + window.scrollY;
+    const insertIndex = allPos.findIndex((pos) => pos > mouseY);
 
-    // Если элемента .task-list__new-place еще нет, создаем его
-    if (!this.newPlace) {
-      this.newPlace = document.createElement('div');
-      this.newPlace.classList.add('task-list__new-place');
-      this.newPlace.style.width = `${this.ghostEl.offsetWidth}px`;
-      this.newPlace.style.height = `${this.ghostEl.offsetHeight}px`;
-    }
-
-    // Вставляем новое место в нужную позицию
-    if (index === 0) {
-      closestColumn.prepend(this.newPlace);
-    } else if (index === positions.length) {
-      closestColumn.appendChild(this.newPlace);
+    // Вставляем placeholder в нужную позицию
+    if (insertIndex !== -1) {
+      closestColumn.insertBefore(this.newPlace, allTasks[insertIndex - 1] || null);
     } else {
-      closestColumn.insertBefore(this.newPlace, allTasks[index - 1]);
+      closestColumn.appendChild(this.newPlace);
     }
   }
 }
