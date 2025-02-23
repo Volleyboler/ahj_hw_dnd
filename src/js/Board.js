@@ -40,7 +40,6 @@ export default class Board {
 
   loadListOfTasks() {
     const previouslySaved = localStorage.getItem('tasks');
-
     if (previouslySaved !== null) {
       this.tasks = JSON.parse(previouslySaved);
     }
@@ -88,7 +87,6 @@ export default class Board {
         <div class="column__add">+ Add another card</div>
       </div>
     `;
-
     document.querySelector('body').appendChild(this.board);
   }
 
@@ -122,8 +120,8 @@ export default class Board {
     newCardForm.innerHTML = `
       <textarea class="add-form__textarea" placeholder="Enter a title for this card..."></textarea>
       <div class="add-form__form-control">
-        <button class="add-form__submit-button">Add Card</button>
-        <button class="add-form__close-button">Close</button>
+        <button class="add-form__button add-form__submit-button">Add Card</button>
+        <button class="add-form__button add-form__close-button">Close</button>
       </div>
     `;
     const closestColumn = e.target.closest('.column');
@@ -190,18 +188,13 @@ export default class Board {
   }
 
   onTaskEnter(e) {
-    if (
-      e.target.classList.contains('task')
-      && !e.target.querySelector('.close')
-    ) {
+    if (e.target.classList.contains('task') && !e.target.querySelector('.close')) {
       const closeEl = document.createElement('div');
       closeEl.classList.add('tasks-list__close');
       closeEl.classList.add('close');
       e.target.appendChild(closeEl);
       closeEl.style.top = `${closeEl.offsetTop - closeEl.offsetHeight / 2}px`;
-      closeEl.style.left = `${
-        e.target.offsetWidth - closeEl.offsetWidth - 3
-      }px`;
+      closeEl.style.left = `${e.target.offsetWidth - closeEl.offsetWidth - 3}px`;
 
       closeEl.addEventListener('click', this.removeTask);
     }
