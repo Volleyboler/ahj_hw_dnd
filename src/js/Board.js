@@ -92,11 +92,11 @@ export default class Board {
       } else {
         target.parentNode.insertBefore(this.placeholder, target);
       }
-    } else {
-      const taskList = document.querySelector('.task_list');
-      if (taskList.querySelectorAll('.task_card').length === 0) {
-        taskList.appendChild(this.placeholder);
-      }
+    // } else {
+    //   const taskList = document.querySelector('.task_list');
+    //   if (taskList.querySelectorAll('.task_card').length === 0) {
+    //     taskList.appendChild(this.placeholder);
+    //   }
     }
   }
 
