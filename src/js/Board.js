@@ -15,11 +15,6 @@ export default class Board {
     tasksHeaderText.textContent = headerText;
     header.appendChild(tasksHeaderText);
 
-    const optionsBtn = document.createElement('span');
-    optionsBtn.classList.add('task_header_options');
-    optionsBtn.textContent = '...';
-    header.appendChild(optionsBtn);
-
     const taskList = document.createElement('div');
     taskList.classList.add('task_list');
     tasks.appendChild(taskList);
