@@ -58,6 +58,7 @@ export default class Board {
     this.nextNeighbour = this.dragging.nextElementSibling;
 
     this.placeholder = document.createElement('div');
+    this.placeholder.classList.add('placeholder');
     this.placeholder.style.width = `${this.dragging.offsetWidth}px`;
     this.placeholder.style.height = `${this.dragging.offsetHeight}px`;
     this.dragging.parentNode.insertBefore(this.placeholder, this.dragging);
@@ -90,6 +91,11 @@ export default class Board {
         target.parentNode.insertBefore(this.placeholder, target.nextSibling);
       } else {
         target.parentNode.insertBefore(this.placeholder, target);
+      }
+    } else {
+      const taskList = document.querySelector('.task_list');
+      if (taskList.querySelectorAll('.task_card').length === 0) {
+        taskList.appendChild(this.placeholder);
       }
     }
   }
