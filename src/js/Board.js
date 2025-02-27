@@ -1,4 +1,4 @@
-export default class Task {
+export default class Board {
   constructor(container, headerText) {
     this.container = container;
 
